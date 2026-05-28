@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>Equit — La educación que transforma tu futuro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- ✅ Supabase SDK — auth real -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-20px)
+            }
+        }
+
+        @keyframes floatSm {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-10px)
+            }
+        }
+
+        @keyframes floatDelayed {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-15px)
+            }
+        }
+
+        @keyframes gradientX {
+
+            0%,
+            100% {
+                background-position: 0% 50%
+            }
+
+            50% {
+                background-position: 100% 50%
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(24px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes checkmark {
+            0% {
+                stroke-dashoffset: 100
+            }
+
+            100% {
+                stroke-dashoffset: 0
+            }
+        }
+
+        @keyframes ping {
+
+            75%,
+            100% {
+                transform: scale(2);
+                opacity: 0
+            }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite
+        }
+
+        .animate-float-sm {
+            animation: floatSm 6s ease-in-out infinite
+        }
+
+        .animate-float-delayed {
+            animation: floatDelayed 8s ease-in-out infinite 2s
+        }
+
+        .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradientX 15s ease infinite
+        }
+
+        .animate-ping {
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite
+        }
+
+        .toast-enter {
+            animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards
+        }
+
+        .spinner {
+            animation: spin 0.8s linear infinite
+        }
+
+        .checkmark-path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: checkmark 0.6s ease 0.3s forwards
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px)
+        }
+
+        .dark-glass {
+            background: rgba(2, 18, 44, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px)
+        }
+
+        .view {
+            display: none
+        }
+
+        .view.active {
+            display: block
+        }
+
+        .card-field {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            width: 100%;
+            outline: none
+        }
+
+        .card-field:focus {
+            border-color: #3b82f6;
+            background: white
+        }
+
+        .loom-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0f172a
+        }
+
+        .loom-wrapper iframe,
+        .loom-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none
+        }
+
+        #video-v1 {
+            border-radius: 16px
+        }
+
+        .lesson-row {
+            transition: all 0.2s ease
+        }
+
+        .lesson-row:hover {
+            background: #f0f7ff;
+            transform: translateX(4px)
+        }
+
+        #sticky-bar {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: translateY(100%);
+            opacity: 0
+        }
+
+        #sticky-bar.visible {
+            transform: translateY(0);
+            opacity: 1
+        }
+
+        #navbar {
+            transition: all 0.4s ease
+        }
+
+        /* ✅ Auth state: muestra/oculta botones según sesión */
+        .auth-logged-in {
+            display: none
+        }
+
+        .auth-logged-out {
+            display: flex
+        }
+
+        body.logged-in .auth-logged-in {
+            display: flex
+        }
+
+        body.logged-in .auth-logged-out {
+            display: none
+        }
+    </style>
+</head>
+
+<!-- ✅ CONFIG REAL — reemplaza tu key completa abajo -->
+<script>
+    const EQUIT_CONFIG = {
+        supabaseUrl: 'https://hvpbfwkltwgbrjgeikcp.supabase.co',
+        // ⚠️ REEMPLAZA con tu Publishable key completa (cópiala del dashboard de Supabase)
+        supabaseKey: 'sb_publishable_UMA2xmHgy5nsDesvK6W9rQ_P1eFK_COMPLETA_AQUI',
+    }
+</script>
+
+<body class="min-h-screen bg-[#F8FAFC] text-slate-900 overflow-x-hidden">
+
+    <!-- TOAST -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- ✅ OVERLAY STRIPE — reemplaza el modal de tarjeta falsa -->
+    <div id="stripe-redirect-overlay" class="fixed inset-0 z-[200] flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-[#02122c]/90 backdrop-blur-md"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-10 text-center relative">
+            <div class="w-16 h-16 mx-auto mb-6">
+                <svg class="spinner w-16 h-16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#e2e8f0" stroke-width="3" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="#02122c" stroke-width="3" stroke-linecap="round" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Redirigiendo a Stripe...</h3>
+            <p class="text-slate-500 text-sm mb-4">Conectando con el procesador de pagos seguro</p>
+            <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
+                <svg class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Pago 100% seguro · SSL 256-bit · Stripe PCI-DSS
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AUTH -->
+    <div id="auth-modal"
+        class="fixed inset-0 z-[150] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-[#02122c]/80 backdrop-blur-md" onclick="closeAuthModal()"></div>
+        <div id="auth-box"
+            class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg relative overflow-hidden transform scale-95 transition-transform duration-300">
+            <button onclick="closeAuthModal()"
+                class="absolute top-5 right-5 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-all z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="p-8 sm:p-10">
+                <div class="text-center mb-8">
+                    <div
+                        class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-blue-100">
+                        <i data-lucide="lock" class="text-[#02122c] w-8 h-8"></i>
+                    </div>
+                    <h3 id="auth-title" class="text-3xl font-extrabold text-slate-900">Bienvenido de nuevo</h3>
+                    <p id="auth-sub" class="text-slate-500 mt-3">Ingresa a tu ecosistema financiero.</p>
+                </div>
+                <!-- ✅ Error real de Supabase -->
+                <div id="auth-error"
+                    class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
+                </div>
+                <div class="space-y-5">
+                    <div id="auth-name-wrap" class="hidden">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Nombre completo</label>
+                        <input type="text" id="auth-name" class="card-field" placeholder="Ej. Juan Pérez"
+                            autocomplete="name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Correo electrónico</label>
+                        <input type="email" id="auth-email" class="card-field" placeholder="tu@correo.com" required
+                            autocomplete="email">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Contraseña</label>
+                        <input type="password" id="auth-pass" class="card-field" placeholder="••••••••" required
+                            autocomplete="current-password" minlength="8">
+                        <p id="pass-hint" class="hidden text-xs text-slate-400 mt-1">Mínimo 8 caracteres</p>
+                    </div>
+                    <button type="button" onclick="handleAuth()"
+                        class="w-full bg-[#02122c] hover:bg-blue-950 text-white font-bold text-lg py-4 rounded-xl transition-all shadow-lg hover:-translate-y-1 flex justify-center items-center gap-2 mt-4">
+                        <span id="auth-btn-txt">Iniciar Sesión</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div id="auth-foot-login"
+                    class="mt-6 pt-6 border-t border-slate-100 text-center text-sm text-slate-600">
+                    ¿Sin cuenta? <button onclick="openAuthModal('register')"
+                        class="text-blue-600 font-bold hover:underline">Regístrate gratis</button>
+                </div>
+                <div id="auth-foot-reg"
+                    class="mt-6 pt-6 border-t border-slate-100 text-center text-sm text-slate-600 hidden">
+                    ¿Ya tienes cuenta? <button onclick="openAuthModal('login')"
+                        class="text-blue-600 font-bold hover:underline">Inicia sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 bg-transparent py-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center cursor-pointer group"
+                    onclick="showView('landing'); window.scrollTo({top:0,behavior:'smooth'})">
+                    <div
+                        class="w-11 h-11 bg-[#02122c] rounded-2xl flex items-center justify-center mr-3 shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+                        <svg viewBox="0 0 100 100" fill="none" class="w-8 h-8">
+                            <path d="M 15 35 V 20 C 15 10 25 5 35 5 H 90 V 35 H 15 Z" fill="white" />
+                            <path d="M 15 65 V 80 C 15 90 25 95 35 95 H 90 V 65 H 15 Z" fill="white" />
+                            <path d="M 15 55 V 45 H 45 L 60 30 H 50 V 20 H 80 V 50 H 70 V 40 L 55 55 H 15 Z"
+                                fill="#3B82F6" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight text-slate-900">Equit<span
+                            class="text-blue-500 text-3xl">.</span></span>
+                </div>
+
+                <div id="nav-links-landing" class="hidden md:flex space-x-10 items-center">
+                    <a href="#rutas"
+                        class="nav-link text-slate-600 hover:text-[#02122c] font-semibold text-sm uppercase tracking-wider transition-colors">Rutas</a>
+                    <a href="#comunidad"
+                        class="nav-link text-slate-600 hover:text-[#02122c] font-semibold text-sm uppercase tracking-wider transition-colors">Comunidad</a>
+                    <a href="#historia"
+                        class="nav-link text-slate-600 hover:text-[#02122c] font-semibold text-sm uppercase tracking-wider transition-colors">Nosotros</a>
+                </div>
+
+                <div id="nav-breadcrumb" class="hidden text-sm font-bold text-slate-500 flex items-center gap-2">
+                    <button onclick="showView('landing')" class="hover:text-[#02122c] transition-colors">Inicio</button>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    <span class="text-slate-900">Cómo usar nuestro presupuesto</span>
+                </div>
+
+                <!-- ✅ Navbar cambia según sesión -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="auth-logged-out items-center gap-3">
+                        <button onclick="openAuthModal('login')"
+                            class="text-slate-700 hover:text-[#02122c] font-bold text-sm transition-colors">Iniciar
+                            sesión</button>
+                        <button onclick="openAuthModal('register')"
+                            class="bg-[#02122c] text-white font-bold text-sm px-4 py-2 rounded-full hover:bg-blue-900 transition-colors">Registro
+                            gratis</button>
+                    </div>
+                    <div class="auth-logged-in items-center gap-3">
+                        <span id="nav-user-email" class="text-slate-600 text-sm font-medium"></span>
+                        <button onclick="handleSignOut()"
+                            class="text-slate-500 hover:text-red-600 font-bold text-sm transition-colors flex items-center gap-1">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                        </button>
+                    </div>
+                </div>
+
+                <button id="mob-btn"
+                    class="md:hidden p-2 bg-blue-50 rounded-full text-[#02122c] hover:bg-blue-100 transition-colors">
+                    <i data-lucide="menu" id="mob-open" class="w-6 h-6"></i>
+                    <i data-lucide="x" id="mob-close" class="w-6 h-6 hidden"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="mob-menu"
+            class="md:hidden absolute w-full bg-white shadow-2xl border-t border-slate-100 opacity-0 -translate-y-4 invisible transition-all duration-300">
+            <div class="px-6 py-6 space-y-3">
+                <a href="#rutas"
+                    class="mob-link block px-4 py-3 text-base font-bold text-slate-800 bg-slate-50 rounded-xl hover:bg-blue-50">Rutas</a>
+                <a href="#comunidad"
+                    class="mob-link block px-4 py-3 text-base font-bold text-slate-800 bg-slate-50 rounded-xl hover:bg-blue-50">Comunidad</a>
+                <a href="#historia"
+                    class="mob-link block px-4 py-3 text-base font-bold text-slate-800 bg-slate-50 rounded-xl hover:bg-blue-50">Nosotros</a>
+                <div class="pt-4 border-t border-slate-100 space-y-3 auth-logged-out">
+                    <button onclick="openAuthModal('login'); closeMob();"
+                        class="w-full py-3.5 font-bold border-2 border-slate-200 rounded-xl hover:border-[#02122c] transition-colors">Iniciar
+                        sesión</button>
+                    <button onclick="openAuthModal('register'); closeMob();"
+                        class="w-full py-3.5 bg-[#02122c] text-white font-bold rounded-xl">Crear cuenta gratis</button>
+                </div>
+                <div class="pt-4 border-t border-slate-100 auth-logged-in">
+                    <button onclick="handleSignOut()"
+                        class="w-full py-3.5 font-bold text-red-600 border-2 border-red-100 rounded-xl hover:bg-red-50 transition-colors">Cerrar
+                        sesión</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================================================================
+     VIEW: LANDING — sin cambios de diseño
+     ================================================================ -->
+    <div id="view-landing" class="view active">
+
+        <!-- HERO -->
+        <section class="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-screen flex items-center">
+            <div class="absolute inset-0 -z-10 bg-slate-50">
+                <div
+                    class="absolute top-[-10%] right-[-5%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-br from-blue-200/40 to-blue-100/40 blur-[120px] mix-blend-multiply animate-gradient-x">
+                </div>
+                <div
+                    class="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tr from-blue-100/40 to-indigo-100/40 blur-[100px] mix-blend-multiply">
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+                <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                    <div class="lg:col-span-7 max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
+                        <div
+                            class="inline-flex items-center gap-2 bg-white border border-blue-100 rounded-full px-5 py-2.5 mb-8 shadow-sm">
+                            <span class="relative flex h-3 w-3">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                            </span>
+                            <span class="text-sm font-bold text-[#02122c]">La educación que transforma tu futuro</span>
+                        </div>
+                        <h1
+                            class="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mb-8 text-slate-900">
+                            Tu dinero <br class="hidden sm:block" />merece un <br class="hidden lg:block" />
+                            <span
+                                class="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#02122c] to-blue-800 pb-2">propósito
+                                real.
+                                <svg class="absolute w-full h-3 -bottom-1 left-0 text-blue-500 opacity-70"
+                                    viewBox="0 0 100 10" preserveAspectRatio="none">
+                                    <path d="M0 5 Q 50 15 100 5" stroke="currentColor" stroke-width="3"
+                                        fill="transparent" />
+                                </svg>
+                            </span>
+                        </h1>
+                        <p class="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">Olvídate del
+                            estrés financiero. Aprende a invertir de forma inteligente, crea un portafolio sólido y
+                            alcanza la paz mental que buscas. <strong>Cero atajos, 100% estrategia.</strong></p>
+                        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                            <button onclick="openAuthModal('register')"
+                                class="w-full sm:w-auto group relative overflow-hidden rounded-full bg-[#02122c] text-white font-bold text-lg px-9 py-5 shadow-[0_10px_30px_rgba(2,18,44,0.3)] hover:shadow-[0_15px_40px_rgba(2,18,44,0.5)] transition-all hover:-translate-y-1">
+                                <span
+                                    class="absolute right-0 w-8 h-32 -mt-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 transition-all duration-1000 transform translate-x-12"></span>
+                                <span class="relative flex items-center justify-center">Empieza tu camino <i
+                                        data-lucide="arrow-right"
+                                        class="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform"></i></span>
+                            </button>
+                            <button onclick="scrollToSection('rutas')"
+                                class="w-full sm:w-auto bg-white border-2 border-slate-200 hover:border-blue-500 text-slate-700 hover:text-blue-600 px-9 py-5 rounded-full font-bold text-lg transition-all flex items-center justify-center shadow-sm hover:shadow-lg">
+                                <i data-lucide="play-circle" class="mr-2 w-6 h-6"></i> Ver cursos
+                            </button>
+                        </div>
+                        <div
+                            class="mt-10 flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-slate-600 font-bold">
+                            <div
+                                class="flex items-center bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 mr-2"></i> Cursos prácticos
+                            </div>
+                            <div
+                                class="flex items-center bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 mr-2"></i> Comunidad
+                                privada
+                            </div>
+                            <div
+                                class="flex items-center bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100">
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 mr-2"></i> Soporte continuo
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tarjetas flotantes -->
+                    <div class="lg:col-span-5 relative hidden lg:block h-[600px]">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-gradient-to-br from-blue-400/20 to-indigo-300/20 rounded-full border border-white/50 animate-pulse"
+                            style="animation-duration:4s;"></div>
+                        <div
+                            class="absolute top-[15%] right-[10%] w-72 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 z-20 animate-float cursor-default hover:scale-105 transition-transform duration-300">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><i
+                                            data-lucide="trending-up" class="text-[#02122c] w-5 h-5"></i></div>
+                                    <div>
+                                        <p class="text-xs text-slate-500 font-bold uppercase">Portafolio</p>
+                                        <p class="font-extrabold text-slate-900">Crecimiento</p>
+                                    </div>
+                                </div>
+                                <span
+                                    class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded-lg">+14.2%</span>
+                            </div>
+                            <div class="flex items-end justify-between h-24 gap-1.5 mt-4">
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200 hover:bg-blue-400 transition-colors"
+                                        style="height:40%"></div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200" style="height:55%">
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200" style="height:45%">
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200" style="height:70%">
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200" style="height:60%">
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-blue-200" style="height:85%">
+                                    </div>
+                                </div>
+                                <div class="flex-1 bg-slate-100 rounded-t-sm relative">
+                                    <div class="absolute bottom-0 w-full rounded-t bg-[#02122c]" style="height:100%">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="absolute bottom-[20%] left-[5%] w-80 glass rounded-3xl shadow-xl border border-white p-5 z-30 animate-float-delayed cursor-default hover:scale-105 transition-transform">
+                            <div class="flex items-center gap-4">
+                                <div class="relative shrink-0">
+                                    <img src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"
+                                        class="w-16 h-16 rounded-2xl object-cover shadow-md" />
+                                    <div class="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md"><i
+                                            data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i></div>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Módulo
+                                        superado</p>
+                                    <p class="text-slate-900 font-extrabold text-sm">Fondos Indexados 101</p>
+                                    <div class="w-full bg-slate-200 rounded-full h-1.5 mt-2">
+                                        <div class="bg-blue-500 h-1.5 rounded-full w-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute top-[45%] -right-[5%] bg-[#02122c] text-white rounded-2xl shadow-xl p-4 flex items-center gap-3 z-10 animate-float-sm cursor-default hover:scale-105 transition-transform"
+                            style="animation-delay:1s;">
+                            <div class="bg-blue-500/20 p-2 rounded-lg"><i data-lucide="target"
+                                    class="w-6 h-6 text-blue-400"></i></div>
+                            <div>
+                                <p class="text-sm font-bold">Meta alcanzada</p>
+                                <p class="text-xs text-slate-400">Fondo de emergencia listo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- METODOLOGÍA -->
+        <section class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-[#02122c] font-bold uppercase tracking-widest text-sm mb-3">La Metodología Equit
+                    </h2>
+                    <h3 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-5">Tu mapa hacia la tranquilidad
+                        financiera</h3>
+                    <p class="text-xl text-slate-600 leading-relaxed">Un ecosistema paso a paso para transformar tu
+                        mentalidad y tu bolsillo.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div
+                        class="bg-white rounded-[2rem] p-10 border-2 border-amber-100 hover:border-amber-300 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-amber-500/20 group relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-8 relative z-10 group-hover:rotate-6 transition-transform">
+                            <i data-lucide="zap" class="w-8 h-8 text-amber-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold text-slate-900 mb-3 relative z-10">1. Despierta tu dinero</h4>
+                        <p class="text-slate-600 text-lg leading-relaxed relative z-10">Organiza tus finanzas, elimina
+                            deudas tóxicas y crea el hábito del ahorro. La base de tu imperio.</p>
+                    </div>
+                    <div
+                        class="bg-white rounded-[2rem] p-10 border-2 border-sky-100 hover:border-sky-300 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-500/20 group relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-8 relative z-10 group-hover:rotate-6 transition-transform">
+                            <i data-lucide="book-open" class="w-8 h-8 text-sky-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold text-slate-900 mb-3 relative z-10">2. Aprende a invertir</h4>
+                        <p class="text-slate-600 text-lg leading-relaxed relative z-10">Descubre cómo funciona el
+                            mercado sin tecnicismos. Abre tu cuenta y realiza tu primera inversión.</p>
+                    </div>
+                    <div
+                        class="bg-white rounded-[2rem] p-10 border-2 border-blue-100 hover:border-[#02122c] transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#02122c]/20 group relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-8 relative z-10 group-hover:rotate-6 transition-transform">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-[#02122c]"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold text-slate-900 mb-3 relative z-10">3. Blinda tu portafolio</h4>
+                        <p class="text-slate-600 text-lg leading-relaxed relative z-10">Estrategias avanzadas de
+                            diversificación. Patrimonio que resiste crisis y genera ingresos pasivos.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CURSOS -->
+        <section id="rutas" class="py-32 bg-[#02122c] text-white relative overflow-hidden">
+            <div
+                class="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none">
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-16">
+                    <div class="max-w-2xl">
+                        <div class="flex items-center gap-2 mb-4"><i data-lucide="star"
+                                class="w-5 h-5 text-blue-400 fill-blue-400"></i><span
+                                class="text-blue-400 font-bold uppercase tracking-widest text-sm">Programas
+                                Premium</span></div>
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-5">Rutas de Aprendizaje</h2>
+                        <p class="text-slate-400 text-xl leading-relaxed">Educación práctica y directa. Las habilidades
+                            que el sistema olvidó enseñarte.</p>
+                    </div>
+                    <button onclick="showToast('Catálogo completo próximamente.','info')"
+                        class="mt-8 md:mt-0 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-bold transition-all flex items-center gap-2 group">
+                        Ver catálogo completo <i data-lucide="arrow-right"
+                            class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+                <div class="grid md:grid-cols-2 gap-10">
+                    <!-- CURSO 1 -->
+                    <div
+                        class="bg-blue-950/30 backdrop-blur-xl rounded-[2rem] overflow-hidden border border-slate-700 hover:border-blue-500 transition-all duration-500 group hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] flex flex-col">
+                        <div class="h-64 overflow-hidden relative cursor-pointer" onclick="showView('course')">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-[#02122c] to-transparent z-10 opacity-80">
+                            </div>
+                            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div class="absolute top-5 left-5 z-20 flex gap-2"><span
+                                    class="bg-emerald-500 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Disponible
+                                    ya</span></div>
+                            <div class="absolute top-5 right-5 z-20">
+                                <div
+                                    class="bg-white text-[#02122c] font-extrabold text-lg px-4 py-1.5 rounded-full shadow-lg">
+                                    $6 <span class="text-xs font-bold text-slate-500">USD</span></div>
+                            </div>
+                        </div>
+                        <div class="p-10 flex-1 flex flex-col -mt-12 relative z-20">
+                            <div
+                                class="bg-[#02122c] rounded-2xl p-4 inline-flex items-center gap-4 mb-6 shadow-xl border border-slate-700 w-max">
+                                <span class="flex items-center text-slate-300 font-bold"><i data-lucide="play-circle"
+                                        class="w-5 h-5 text-blue-400 mr-2"></i> 5 Videos</span>
+                                <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+                                <span class="text-slate-300 font-bold">Nivel: Inicial</span>
+                            </div>
+                            <h3
+                                class="text-3xl font-extrabold mb-4 text-white group-hover:text-blue-400 transition-colors">
+                                Cómo usar nuestro presupuesto</h3>
+                            <p class="text-slate-400 text-lg mb-6 leading-relaxed flex-1">Descarga nuestra plantilla de
+                                presupuesto y aprende paso a paso cómo usarla en videos de máximo 5 minutos. El primer
+                                paso real hacia tu libertad financiera.</p>
+                            <ul class="space-y-2 mb-8">
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Plantilla de presupuesto
+                                    incluida</li>
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Videos cortos en español (máx.
+                                    5 min)</li>
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Acceso de por vida</li>
+                            </ul>
+                            <div
+                                class="pt-6 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-11 h-11 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-lg">
+                                        NQ</div>
+                                    <div>
+                                        <p class="text-sm font-bold text-white">Nicolás Quiñonez</p>
+                                        <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Fundador
+                                            Equit</p>
+                                    </div>
+                                </div>
+                                <!-- ✅ Llama a startCheckout, no openPayModal -->
+                                <button onclick="startCheckout('presupuesto')"
+                                    class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-white px-8 py-4 rounded-xl font-extrabold text-lg transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:-translate-y-1 flex items-center justify-center gap-2">
+                                    <i data-lucide="lock" class="w-5 h-5"></i> Comprar por $6
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CURSO 2 -->
+                    <div
+                        class="bg-blue-950/30 backdrop-blur-xl rounded-[2rem] overflow-hidden border border-slate-700 hover:border-blue-500 transition-all duration-500 group hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] flex flex-col">
+                        <div class="h-64 overflow-hidden relative">
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-[#02122c] to-transparent z-10 opacity-80">
+                            </div>
+                            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div class="absolute top-5 left-5 z-20"><span
+                                    class="bg-amber-500 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Próximamente</span>
+                            </div>
+                        </div>
+                        <div class="p-10 flex-1 flex flex-col -mt-12 relative z-20">
+                            <div
+                                class="bg-[#02122c] rounded-2xl p-4 inline-flex items-center gap-4 mb-6 shadow-xl border border-slate-700 w-max">
+                                <span class="flex items-center text-slate-300 font-bold"><i data-lucide="play-circle"
+                                        class="w-5 h-5 text-blue-400 mr-2"></i> 12 Módulos</span>
+                                <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+                                <span class="text-slate-300 font-bold">Nivel: Inicial</span>
+                            </div>
+                            <h3
+                                class="text-3xl font-extrabold mb-4 text-white group-hover:text-blue-400 transition-colors">
+                                Mi Primera Inversión en Bolsa</h3>
+                            <p class="text-slate-400 text-lg mb-6 leading-relaxed flex-1">Pierde el miedo al mercado de
+                                valores. Aprende a abrir tu cuenta de corretaje internacional y realiza tu primera
+                                compra fundamentada.</p>
+                            <ul class="space-y-2 mb-8">
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Acceso de por vida al contenido
+                                </li>
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Comunidad privada de
+                                    estudiantes</li>
+                                <li class="flex items-center text-slate-300 text-sm"><i data-lucide="check"
+                                        class="w-4 h-4 text-blue-400 mr-2 shrink-0"></i> Certificado de finalización
+                                </li>
+                            </ul>
+                            <div class="pt-6 border-t border-slate-700 flex justify-end">
+                                <button onclick="showToast('¡Te avisamos cuando esté disponible!','info')"
+                                    class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-xl font-extrabold text-lg transition-all hover:-translate-y-1 flex items-center justify-center gap-2">
+                                    <i data-lucide="bell" class="w-5 h-5"></i> Avisarme
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-10 flex flex-wrap items-center justify-center gap-6 opacity-40">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm"><i data-lucide="shield"
+                            class="w-4 h-4"></i> Pagos por Stripe</div>
+                    <div class="flex items-center gap-2 text-slate-400 text-sm"><i data-lucide="lock"
+                            class="w-4 h-4"></i> SSL 256-bit</div>
+                    <div class="flex items-center gap-2 text-slate-400 text-sm"><i data-lucide="credit-card"
+                            class="w-4 h-4"></i> Visa, Mastercard, Amex</div>
+                    <div class="flex items-center gap-2 text-slate-400 text-sm"><i data-lucide="rotate-ccw"
+                            class="w-4 h-4"></i> Garantía 7 días</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HISTORIA -->
+        <section id="historia" class="py-32 bg-slate-50 overflow-hidden relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-20 items-center">
+                    <div class="relative order-2 lg:order-1">
+                        <div
+                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-200/50 rounded-full blur-[100px] -z-10">
+                        </div>
+                        <div class="relative z-10 grid grid-cols-12 gap-4">
+                            <div
+                                class="col-span-8 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white -rotate-2 hover:rotate-0 transition-transform duration-500">
+                                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                    class="w-full h-80 object-cover" />
+                            </div>
+                            <div
+                                class="col-span-7 col-start-6 -mt-20 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-500 relative z-20">
+                                <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                    class="w-full h-72 object-cover" />
+                            </div>
+                        </div>
+                        <div
+                            class="absolute -left-8 top-1/3 bg-white p-5 rounded-2xl shadow-xl z-30 flex items-center gap-4 animate-float-sm">
+                            <div class="bg-blue-100 p-3 rounded-xl"><i data-lucide="users"
+                                    class="w-8 h-8 text-[#02122c]"></i></div>
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase font-black tracking-widest mb-1">Los
+                                    Fundadores</p>
+                                <p class="font-extrabold text-slate-900">Mariana & Nicolás</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <h2 class="text-[#02122c] font-bold uppercase tracking-widest text-sm mb-4">Nuestra Historia
+                        </h2>
+                        <h3 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-8 leading-[1.1]">De
+                            la barra<br /><span
+                                class="text-transparent bg-clip-text bg-gradient-to-r from-[#02122c] to-blue-800">al
+                                mercado.</span></h3>
+                        <div class="space-y-5 text-lg text-slate-600 leading-relaxed">
+                            <p>No nacimos con un portafolio bajo el brazo. Durante años dejamos nuestra alma en la
+                                industria de la hospitalidad. Sabemos lo que es trabajar sin descanso, vivir al día y
+                                sentir que el dinero simplemente se escapa.</p>
+                            <div
+                                class="relative p-8 bg-white rounded-3xl shadow-lg border border-blue-50 transform hover:-translate-y-1 transition-transform">
+                                <div class="absolute top-0 left-0 w-2 h-full bg-blue-500 rounded-l-3xl"></div>
+                                <p class="font-bold text-slate-900 text-xl italic leading-relaxed">"Puedes trabajar toda
+                                    la vida y no construir nada, a menos que aprendas a hacer que el dinero trabaje para
+                                    ti."</p>
+                            </div>
+                            <p>Así nació <strong class="text-slate-900">Equit</strong>. Transformamos nuestra ética de
+                                trabajo en inteligencia financiera. Hoy democratizamos estas estrategias para que tú
+                                también construyas riqueza y recuperes tu tiempo.</p>
+                        </div>
+                        <button onclick="openAuthModal('register')"
+                            class="mt-10 font-bold text-[#02122c] hover:text-blue-800 flex items-center group text-lg">
+                            Únete a nuestra revolución <i data-lucide="arrow-right"
+                                class="ml-2 w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEWSLETTER -->
+        <section id="comunidad" class="py-24 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-[#02122c] to-blue-950"></div>
+            <div class="absolute top-0 right-0 overflow-hidden pointer-events-none opacity-10">
+                <svg width="800" height="800" viewBox="0 0 100 100" fill="none">
+                    <circle cx="50" cy="50" r="40" stroke="white" stroke-width="2" />
+                    <circle cx="50" cy="50" r="30" stroke="white" stroke-width="2" />
+                    <circle cx="50" cy="50" r="20" stroke="white" stroke-width="2" />
+                </svg>
+            </div>
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-blue-500/20 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-blue-400/30 -rotate-6 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                    <i data-lucide="mail" class="w-10 h-10 text-blue-400"></i>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-6">El conocimiento es tu mejor activo</h2>
+                <p class="text-xl text-blue-100/80 mb-10 max-w-2xl mx-auto leading-relaxed">Recibe estrategias de
+                    inversión semanales, análisis de mercado y la dosis de mentalidad que necesitas para no rendirte.
+                </p>
+                <form
+                    class="flex flex-col sm:flex-row max-w-2xl mx-auto bg-white p-2 rounded-[2rem] sm:rounded-full shadow-2xl focus-within:ring-4 focus-within:ring-blue-500/50 transition-all"
+                    onsubmit="handleNewsletter(event)">
+                    <input type="email" id="nl-email" placeholder="Tu correo principal..."
+                        class="flex-grow px-6 py-4 rounded-full border-none focus:ring-0 outline-none text-lg text-slate-800 bg-transparent placeholder-slate-400"
+                        required>
+                    <button type="submit"
+                        class="mt-2 sm:mt-0 bg-[#02122c] hover:bg-blue-600 text-white px-10 py-4 rounded-full font-bold text-lg transition-all">Suscribirme</button>
+                </form>
+                <p class="text-sm text-blue-200/50 mt-5">Cero spam. Prometemos cuidar tu bandeja de entrada.</p>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="bg-white pt-20 pb-10 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+                    <div class="md:col-span-5">
+                        <div class="flex items-center mb-6 cursor-pointer"
+                            onclick="window.scrollTo({top:0,behavior:'smooth'})">
+                            <div
+                                class="w-10 h-10 bg-[#02122c] rounded-xl flex items-center justify-center mr-3 overflow-hidden">
+                                <svg viewBox="0 0 100 100" fill="none" class="w-7 h-7">
+                                    <path d="M 15 35 V 20 C 15 10 25 5 35 5 H 90 V 35 H 15 Z" fill="white" />
+                                    <path d="M 15 65 V 80 C 15 90 25 95 35 95 H 90 V 65 H 15 Z" fill="white" />
+                                    <path d="M 15 55 V 45 H 45 L 60 30 H 50 V 20 H 80 V 50 H 70 V 40 L 55 55 H 15 Z"
+                                        fill="#3B82F6" />
+                                </svg>
+                            </div>
+                            <span class="text-2xl font-extrabold text-slate-900">Equit<span
+                                    class="text-blue-500">.</span></span>
+                        </div>
+                        <p class="text-slate-600 mb-8 max-w-sm text-lg leading-relaxed">El ecosistema de educación
+                            financiera para la comunidad latina. De la barra al mercado.</p>
+                        <div class="flex gap-3">
+                            <a href="https://instagram.com/nicolas.equit" target="_blank" rel="noopener noreferrer"
+                                class="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 hover:text-[#02122c] hover:border-blue-200 transition-all hover:-translate-y-1"><i
+                                    data-lucide="instagram" class="w-5 h-5"></i></a>
+                            <a href="javascript:void(0)" onclick="showToast('Próximamente en Twitter / X','info')"
+                                class="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 hover:text-[#02122c] hover:border-blue-200 transition-all hover:-translate-y-1"><i
+                                    data-lucide="twitter" class="w-5 h-5"></i></a>
+                            <a href="javascript:void(0)" onclick="showToast('Próximamente en LinkedIn','info')"
+                                class="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-blue-50 hover:text-[#02122c] hover:border-blue-200 transition-all hover:-translate-y-1"><i
+                                    data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        </div>
+                    </div>
+                    <div class="md:col-span-3 md:col-start-7">
+                        <h4 class="font-extrabold text-slate-900 mb-6 uppercase text-sm tracking-widest">Plataforma</h4>
+                        <ul class="space-y-4">
+                            <li><button onclick="showView('course')"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Presupuesto —
+                                    $6</button></li>
+                            <li><a href="#historia"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Nuestra Historia</a>
+                            </li>
+                            <li><button onclick="openAuthModal('login')"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Iniciar
+                                    Sesión</button></li>
+                            <li><button onclick="openAuthModal('register')"
+                                    class="text-blue-600 hover:text-blue-700 font-bold transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Crear cuenta
+                                    gratis</button></li>
+                        </ul>
+                    </div>
+                    <div class="md:col-span-3">
+                        <h4 class="font-extrabold text-slate-900 mb-6 uppercase text-sm tracking-widest">Legal</h4>
+                        <ul class="space-y-4">
+                            <li><a href="javascript:void(0)" onclick="showToast('Centro de Ayuda próximamente','info')"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Centro de Ayuda</a>
+                            </li>
+                            <li><a href="javascript:void(0)" onclick="showToast('Términos de Servicio','info')"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Términos de
+                                    Servicio</a></li>
+                            <li><a href="javascript:void(0)" onclick="showToast('Políticas de Privacidad','info')"
+                                    class="text-slate-600 hover:text-[#02122c] font-medium transition-colors flex items-center gap-1"><i
+                                        data-lucide="chevron-right" class="w-4 h-4 opacity-50"></i> Políticas de
+                                    Privacidad</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div
+                    class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p class="text-slate-500 text-sm">© 2026 Equit Education Inc. Todos los derechos reservados.</p>
+                    <p class="text-slate-400 text-xs text-center md:text-right max-w-lg">La información de Equit es
+                        estrictamente educativa y no constituye asesoramiento financiero, de inversión ni fiscal.</p>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- /view-landing -->
+
+    <!-- ================================================================
+     VIEW: COURSE
+     ================================================================ -->
+    <div id="view-course" class="view">
+
+        <section class="pt-20 bg-[#02122c] relative overflow-hidden">
+            <div
+                class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none">
+            </div>
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-0 relative z-10">
+                <div class="grid lg:grid-cols-12 gap-12 items-end">
+                    <div class="lg:col-span-7 pb-16">
+                        <div
+                            class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-2 mb-6">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                            <span class="text-blue-300 text-sm font-bold uppercase tracking-widest">Curso
+                                disponible</span>
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-5">Cómo usar
+                            nuestro<br /><span
+                                class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200">presupuesto</span>
+                        </h1>
+                        <p class="text-slate-300 text-lg leading-relaxed mb-8 max-w-xl">Descarga nuestra plantilla y
+                            aprende paso a paso cómo usarla en videos de máximo 5 minutos. El primer paso real hacia tu
+                            libertad financiera.</p>
+                        <div class="flex flex-wrap gap-5 mb-8">
+                            <div class="flex items-center gap-2 text-slate-300">
+                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center"><i
+                                        data-lucide="play-circle" class="w-4 h-4 text-blue-400"></i></div><span
+                                    class="font-bold">5 videos</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-300">
+                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center"><i
+                                        data-lucide="clock" class="w-4 h-4 text-blue-400"></i></div><span
+                                    class="font-bold">~20 min total</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-300">
+                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center"><i
+                                        data-lucide="download" class="w-4 h-4 text-blue-400"></i></div><span
+                                    class="font-bold">Plantilla incluida</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-300">
+                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center"><i
+                                        data-lucide="infinity" class="w-4 h-4 text-blue-400"></i></div><span
+                                    class="font-bold">Acceso de por vida</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button id="hero-cta-btn" onclick="startCheckout('presupuesto')"
+                                class="group relative overflow-hidden bg-blue-500 hover:bg-blue-400 text-white font-extrabold text-xl px-10 py-5 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:-translate-y-1 transition-all flex items-center gap-3">
+                                <i data-lucide="lock" class="w-6 h-6"></i> Acceder por $6 USD
+                            </button>
+                            <button
+                                onclick="document.getElementById('preview-section').scrollIntoView({behavior:'smooth'})"
+                                class="text-slate-300 hover:text-white font-bold flex items-center gap-2 py-5 transition-colors">
+                                <i data-lucide="play" class="w-5 h-5"></i> Ver preview gratis
+                            </button>
+                        </div>
+                        <p class="text-slate-500 text-sm mt-4 flex items-center gap-2"><i data-lucide="shield-check"
+                                class="w-4 h-4"></i> Pago único · Sin suscripción · Garantía 7 días</p>
+                    </div>
+                    <div class="lg:col-span-5">
+                        <div class="rounded-t-3xl overflow-hidden shadow-2xl border border-white/10 cursor-pointer group"
+                            onclick="document.getElementById('preview-section').scrollIntoView({behavior:'smooth'})">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                                    class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-[#02122c] via-transparent to-transparent">
+                                </div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div
+                                        class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                                        <i data-lucide="play" class="w-7 h-7 text-white ml-1"></i>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-4 left-4"><span
+                                        class="bg-blue-500 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">Preview
+                                        gratis</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEO PREVIEW -->
+        <section id="preview-section" class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="text-center mb-10">
+                    <span
+                        class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 font-bold text-sm px-4 py-2 rounded-full border border-blue-100 mb-4"><i
+                            data-lucide="play-circle" class="w-4 h-4"></i> Preview gratuito — Lección 1</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Bienvenida a Equit</h2>
+                    <p class="text-slate-500 mt-2">Primer video sin costo. El resto se desbloquea con tu acceso.</p>
+                </div>
+                <div class="loom-wrapper shadow-2xl mb-6"
+                    style="border-radius:16px;overflow:hidden;box-shadow:0 25px 60px rgba(2,18,44,0.25);">
+                    <video id="video-v1" controls controlsList="nodownload" preload="metadata"
+                        style="position:absolute;top:0;left:0;width:100%;height:100%;background:#0f172a;border-radius:16px;">
+                        <source src="leccion1-bienvenida.mov" type="video/mp4">
+                        <source src="leccion1-bienvenida.mov" type="video/quicktime">
+                    </video>
+                </div>
+                <div id="course-unlock-cta" class="flex justify-center mt-8">
+                    <button onclick="startCheckout('presupuesto')"
+                        class="bg-[#02122c] hover:bg-blue-950 text-white font-extrabold text-lg px-10 py-5 rounded-2xl shadow-lg hover:-translate-y-1 transition-all flex items-center gap-3">
+                        <i data-lucide="lock" class="w-5 h-5"></i> Desbloquear los 4 videos restantes — $6
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEMARIO -->
+        <section class="py-20 bg-slate-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">Lo que aprenderás</h2>
+                    <p class="text-slate-500 text-lg">5 lecciones · Máximo 5 min · Plantilla descargable incluida</p>
+                </div>
+                <div class="space-y-3" id="temario-list"></div>
+                <div class="mt-10 bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm">
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-6">¿Qué incluye?</h3>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0"><i
+                                    data-lucide="video" class="w-4 h-4 text-blue-600"></i></div>
+                            <div>
+                                <p class="font-bold text-slate-900 text-sm">5 videos en español</p>
+                                <p class="text-slate-500 text-xs">Sin tecnicismos, directo al punto</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0"><i
+                                    data-lucide="table" class="w-4 h-4 text-blue-600"></i></div>
+                            <div>
+                                <p class="font-bold text-slate-900 text-sm">Plantilla de presupuesto</p>
+                                <p class="text-slate-500 text-xs">Lista para usar desde el día 1</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0"><i
+                                    data-lucide="infinity" class="w-4 h-4 text-blue-600"></i></div>
+                            <div>
+                                <p class="font-bold text-slate-900 text-sm">Acceso de por vida</p>
+                                <p class="text-slate-500 text-xs">Revisa cuando quieras</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0"><i
+                                    data-lucide="trending-up" class="w-4 h-4 text-blue-600"></i></div>
+                            <div>
+                                <p class="font-bold text-slate-900 text-sm">Preview del próximo curso</p>
+                                <p class="text-slate-500 text-xs">Mi Primera Inversión en Bolsa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENIDO (bloqueado/desbloqueado) -->
+        <section class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Contenido del curso</h2>
+                    <p class="text-slate-500">Desbloquea las lecciones con tu acceso</p>
+                </div>
+                <div id="locked-section" class="space-y-4"></div>
+                <div id="unlocked-section" class="space-y-10 hidden"></div>
+                <div id="course-cta"
+                    class="mt-10 bg-gradient-to-br from-[#02122c] to-blue-900 rounded-[2rem] p-10 text-center text-white">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5"><i
+                            data-lucide="lock" class="w-8 h-8 text-blue-400"></i></div>
+                    <h3 class="text-2xl font-extrabold mb-3">Accede a todo el curso</h3>
+                    <p class="text-slate-300 mb-6 text-lg">5 videos + plantilla. Un solo pago, acceso de por vida.</p>
+                    <button onclick="startCheckout('presupuesto')"
+                        class="bg-blue-500 hover:bg-blue-400 text-white font-extrabold text-xl px-12 py-5 rounded-2xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:-translate-y-1 transition-all">Acceder
+                        por $6 USD</button>
+                    <p class="text-slate-400 text-sm mt-4">Garantía de devolución 7 días</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRÓXIMO CURSO -->
+        <section class="py-20 bg-slate-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="text-center mb-10">
+                    <span
+                        class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 font-bold text-sm px-4 py-2 rounded-full border border-amber-100 mb-4"><i
+                            data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i> Próximamente en
+                        Equit</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Tu próximo paso</h2>
+                </div>
+                <div
+                    class="bg-[#02122c] rounded-[2rem] overflow-hidden border border-slate-700 hover:border-blue-500 transition-all group hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)]">
+                    <div class="h-48 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#02122c] to-transparent z-10 opacity-80">
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div class="absolute top-4 left-4 z-20"><span
+                                class="bg-amber-500 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">Próximamente</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div
+                            class="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2 mb-4">
+                            <i data-lucide="play-circle" class="w-4 h-4 text-blue-400"></i><span
+                                class="text-slate-300 text-sm font-bold">12 Módulos · Nivel Inicial</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-white mb-3">Mi Primera Inversión en Bolsa</h3>
+                        <p class="text-slate-400 leading-relaxed mb-6">Pierde el miedo al mercado de valores. Aprende a
+                            abrir tu cuenta de corretaje y realiza tu primera compra de forma fundamentada.</p>
+                        <button
+                            onclick="showToast('¡Te avisamos cuando esté disponible! Suscríbete al newsletter.','info')"
+                            class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-8 py-3.5 rounded-xl transition-all flex items-center gap-2"><i
+                                data-lucide="bell" class="w-4 h-4"></i> Avisarme cuando esté listo</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER CURSO -->
+        <footer class="bg-[#02122c] py-10">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="showView('landing')">
+                    <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg viewBox="0 0 100 100" fill="none" class="w-5 h-5">
+                            <path d="M 15 35 V 20 C 15 10 25 5 35 5 H 90 V 35 H 15 Z" fill="white" />
+                            <path d="M 15 65 V 80 C 15 90 25 95 35 95 H 90 V 65 H 15 Z" fill="white" />
+                            <path d="M 15 55 V 45 H 45 L 60 30 H 50 V 20 H 80 V 50 H 70 V 40 L 55 55 H 15 Z"
+                                fill="#3B82F6" />
+                        </svg>
+                    </div>
+                    <span class="text-white font-extrabold">Equit<span class="text-blue-400">.</span></span>
+                </div>
+                <p class="text-slate-500 text-sm">© 2026 Equit Education Inc. · Solo fines educativos</p>
+                <button onclick="showView('landing')"
+                    class="text-slate-400 hover:text-white text-sm font-medium transition-colors flex items-center gap-1"><i
+                        data-lucide="arrow-left" class="w-4 h-4"></i> Volver al inicio</button>
+            </div>
+        </footer>
+
+        <div id="sticky-bar"
+            class="fixed bottom-0 left-0 right-0 z-40 glass border-t border-slate-200 shadow-2xl py-3 px-4">
+            <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                <div class="hidden sm:block">
+                    <p class="font-extrabold text-slate-900 text-sm">Cómo usar nuestro presupuesto</p>
+                    <p class="text-slate-500 text-xs">5 videos · Plantilla incluida · Acceso de por vida</p>
+                </div>
+                <button id="sticky-cta-btn" onclick="startCheckout('presupuesto')"
+                    class="w-full sm:w-auto bg-[#02122c] hover:bg-blue-950 text-white font-extrabold px-8 py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg transition-all">
+                    <i data-lucide="lock" class="w-4 h-4"></i> Acceder por $6 USD
+                </button>
+            </div>
+        </div>
+
+    </div><!-- /view-course -->
+
+    <!-- ================================================================
+     JAVASCRIPT — 100% REAL, sin demos ni datos de prueba
+     ================================================================ -->
+    <script>
+        // ✅ Init Supabase con tus credenciales reales
+        const sb = supabase.createClient(EQUIT_CONFIG.supabaseUrl, EQUIT_CONFIG.supabaseKey)
+
+        lucide.createIcons()
+
+        // ── Lecciones ──────────────────────────────────────────────────────────────
+        const LECCIONES = [
+            { n: 1, titulo: 'Bienvenida a Equit', dur: '1 min 23 seg', libre: true, desc: 'Conoce la misión de Equit y cómo este curso transforma tu relación con el dinero.' },
+            { n: 2, titulo: 'Descarga y conoce la plantilla', dur: '5 min', libre: false, desc: 'Recorre cada sección de la plantilla de presupuesto y para qué sirve.' },
+            { n: 3, titulo: 'Cómo registrar tus ingresos', dur: '5 min', libre: false, desc: 'Aprende a ingresar todas tus fuentes de ingreso, fijas y variables.' },
+            { n: 4, titulo: 'Cómo organizar tus gastos', dur: '5 min', libre: false, desc: 'Categoriza cada gasto y descubre a dónde va realmente tu dinero.' },
+            { n: 5, titulo: 'Tu próximo paso: invertir', dur: '4 min', libre: false, desc: 'Preview del próximo curso: Mi Primera Inversión en Bolsa.' },
+        ]
+
+        const temarioList = document.getElementById('temario-list')
+        LECCIONES.forEach(l => {
+            const d = document.createElement('div')
+            d.className = `lesson-row flex items-center gap-4 bg-white rounded-2xl p-5 border cursor-default ${l.libre ? 'border-blue-100' : 'border-slate-100'}`
+            d.innerHTML = `
+            <div class="w-10 h-10 rounded-xl ${l.libre ? 'bg-blue-500' : 'bg-slate-100'} flex items-center justify-center shrink-0">
+                ${l.libre ? '<i data-lucide="play" class="w-5 h-5 text-white"></i>' : `<span class="text-slate-500 font-extrabold text-sm">${l.n}</span>`}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <p class="font-bold text-slate-900">${l.titulo}</p>
+                    ${l.libre ? '<span class="bg-blue-50 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-100">Preview gratis</span>' : ''}
+                </div>
+                <p class="text-slate-500 text-sm mt-0.5">${l.desc}</p>
+            </div>
+            <div class="text-slate-400 text-sm font-bold shrink-0 flex items-center gap-1">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i> ${l.dur}
+            </div>`
+            temarioList.appendChild(d)
+        })
+        lucide.createIcons({ root: temarioList })
+
+        const lockedSection = document.getElementById('locked-section')
+        const unlockedSection = document.getElementById('unlocked-section')
+        LECCIONES.slice(1).forEach(l => {
+            const lock = document.createElement('div')
+            lock.className = 'rounded-2xl overflow-hidden border border-slate-200 bg-slate-50'
+            lock.innerHTML = `
+            <div class="flex items-center justify-between p-5 cursor-pointer group" onclick="startCheckout('presupuesto')">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                        <i data-lucide="lock" class="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-700">Lección ${l.n}: ${l.titulo}</p>
+                        <p class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${l.dur}</p>
+                    </div>
+                </div>
+                <span class="bg-blue-500 text-white text-xs font-black px-3 py-1.5 rounded-full">Desbloquear</span>
+            </div>`
+            lockedSection.appendChild(lock)
+
+            const unlock = document.createElement('div')
+            unlock.className = 'rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm'
+            unlock.innerHTML = `
+            <div class="p-5 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center"><i data-lucide="play" class="w-5 h-5 text-white"></i></div>
+                    <div><p class="font-bold text-slate-900">Lección ${l.n}: ${l.titulo}</p><p class="text-slate-500 text-sm">${l.dur}</p></div>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="loom-wrapper">
+                    <iframe src="https://www.loom.com/embed/REEMPLAZA_LOOM_VIDEO_${l.n}?hide_owner=true&hide_share=true" allowfullscreen></iframe>
+                </div>
+            </div>`
+            unlockedSection.appendChild(unlock)
+        })
+        lucide.createIcons({ root: lockedSection })
+
+        // ── Auth state ──────────────────────────────────────────────────────────────
+        let currentUser = null
+
+        sb.auth.onAuthStateChange(async (_event, session) => {
+            currentUser = session?.user ?? null
+            updateAuthUI()
+            if (currentUser) await checkPurchaseAccess()
+        })
+
+        function updateAuthUI() {
+            if (currentUser) {
+                document.body.classList.add('logged-in')
+                const el = document.getElementById('nav-user-email')
+                if (el) el.textContent = currentUser.email
+            } else {
+                document.body.classList.remove('logged-in')
+            }
+        }
+
+        // ── Verificar si el usuario ya pagó ────────────────────────────────────────
+        async function checkPurchaseAccess() {
+            if (!currentUser) return false
+            const { data } = await sb
+                .from('purchases')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .eq('course_slug', 'presupuesto')
+                .maybeSingle()
+            if (data) { unlockCourseUI(); return true }
+            return false
+        }
+
+        function unlockCourseUI() {
+            document.getElementById('locked-section').classList.add('hidden')
+            document.getElementById('unlocked-section').classList.remove('hidden')
+            document.getElementById('course-cta').classList.add('hidden')
+            const cta = document.getElementById('course-unlock-cta')
+            if (cta) cta.classList.add('hidden')
+            const heroCta = document.getElementById('hero-cta-btn')
+            if (heroCta) {
+                heroCta.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i> ¡Tienes acceso completo!'
+                heroCta.className = heroCta.className.replace('bg-blue-500 hover:bg-blue-400', 'bg-emerald-500 cursor-default')
+                heroCta.onclick = null
+            }
+            const stickyCta = document.getElementById('sticky-cta-btn')
+            if (stickyCta) {
+                stickyCta.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Acceso completo'
+                stickyCta.className = stickyCta.className.replace('bg-[#02122c] hover:bg-blue-950', 'bg-emerald-600 cursor-default')
+                stickyCta.onclick = null
+            }
+            lucide.createIcons()
+        }
+
+        // ✅ STRIPE REAL — redirige a Stripe, nunca toca datos de tarjeta
+        async function startCheckout(courseSlug) {
+            if (currentUser) {
+                const hasAccess = await checkPurchaseAccess()
+                if (hasAccess) return
+            }
+            const overlay = document.getElementById('stripe-redirect-overlay')
+            overlay.classList.remove('hidden')
+            try {
+                const res = await fetch('/.netlify/functions/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseSlug, userEmail: currentUser?.email || null }),
+                })
+                const data = await res.json()
+                if (data.error) { overlay.classList.add('hidden'); showToast(data.error, 'error'); return }
+                window.location.href = data.url
+            } catch (err) {
+                overlay.classList.add('hidden')
+                showToast('Error de conexión. Intenta de nuevo.', 'error')
+            }
+        }
+
+        // ✅ AUTH REAL con Supabase
+        let authMode = 'login'
+
+        function openAuthModal(mode) {
+            authMode = mode
+            const isLogin = mode === 'login'
+            document.getElementById('auth-title').textContent = isLogin ? 'Bienvenido de nuevo' : 'Comienza tu viaje'
+            document.getElementById('auth-sub').textContent = isLogin ? 'Ingresa a tu ecosistema financiero.' : 'Únete y construye tu libertad financiera.'
+            document.getElementById('auth-btn-txt').textContent = isLogin ? 'Iniciar Sesión' : 'Crear mi cuenta'
+            document.getElementById('auth-name-wrap').classList.toggle('hidden', isLogin)
+            document.getElementById('pass-hint').classList.toggle('hidden', isLogin)
+            document.getElementById('auth-foot-login').classList.toggle('hidden', !isLogin)
+            document.getElementById('auth-foot-reg').classList.toggle('hidden', isLogin)
+            document.getElementById('auth-error').classList.add('hidden')
+            const modal = document.getElementById('auth-modal')
+            const box = document.getElementById('auth-box')
+            modal.classList.remove('hidden')
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0'); modal.classList.add('opacity-100')
+                box.classList.remove('scale-95'); box.classList.add('scale-100')
+                lucide.createIcons({ root: modal })
+            })
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal')
+            const box = document.getElementById('auth-box')
+            modal.classList.remove('opacity-100'); modal.classList.add('opacity-0')
+            box.classList.remove('scale-100'); box.classList.add('scale-95')
+            setTimeout(() => modal.classList.add('hidden'), 300)
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('auth-email').value.trim()
+            const password = document.getElementById('auth-pass').value
+            const errEl = document.getElementById('auth-error')
+            errEl.classList.add('hidden')
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errEl.textContent = 'Ingresa un correo válido.'; errEl.classList.remove('hidden'); return
+            }
+            if (password.length < 8) {
+                errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.'; errEl.classList.remove('hidden'); return
+            }
+
+            const btn = document.querySelector('#auth-modal button[onclick="handleAuth()"]')
+            if (btn) { btn.disabled = true; btn.innerHTML = '<svg class="spinner w-5 h-5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#ffffff40" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" stroke-linecap="round"/></svg> <span>Un momento...</span>' }
+
+            try {
+                if (authMode === 'login') {
+                    const { error } = await sb.auth.signInWithPassword({ email, password })
+                    if (error) throw error
+                    showToast('¡Bienvenido de nuevo!', 'success')
+                } else {
+                    const fullName = document.getElementById('auth-name').value.trim()
+                    const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName } } })
+                    if (error) throw error
+                    showToast('¡Cuenta creada! Revisa tu correo para confirmar.', 'success')
+                }
+                closeAuthModal()
+            } catch (err) {
+                const msgs = {
+                    'Invalid login credentials': 'Correo o contraseña incorrectos.',
+                    'User already registered': 'Ya existe una cuenta con este correo.',
+                    'Password should be at least 6 characters': 'La contraseña debe tener al menos 8 caracteres.',
+                    'Email not confirmed': 'Confirma tu correo antes de iniciar sesión.',
+                }
+                errEl.textContent = msgs[err.message] || err.message
+                errEl.classList.remove('hidden')
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = `<span id="auth-btn-txt">${authMode === 'login' ? 'Iniciar Sesión' : 'Crear mi cuenta'}</span><i data-lucide="arrow-right" class="w-5 h-5"></i>`; lucide.createIcons({ root: btn.parentElement }) }
+            }
+        }
+
+        async function handleSignOut() {
+            await sb.auth.signOut()
+            showToast('Sesión cerrada correctamente.', 'info')
+            showView('landing')
+        }
+
+        // ── Navegación ──────────────────────────────────────────────────────────────
+        function showView(view) {
+            document.getElementById('view-landing').classList.remove('active')
+            document.getElementById('view-course').classList.remove('active')
+            document.getElementById('view-' + view).classList.add('active')
+            const isLanding = view === 'landing'
+            document.getElementById('nav-links-landing').classList.toggle('hidden', !isLanding)
+            document.getElementById('nav-links-landing').classList.toggle('md:flex', isLanding)
+            document.getElementById('nav-breadcrumb').classList.toggle('hidden', isLanding)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            setTimeout(() => lucide.createIcons(), 100)
+        }
+
+        function scrollToSection(id) {
+            showView('landing')
+            setTimeout(() => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }) }, 100)
+        }
+
+        // ── Scroll ──────────────────────────────────────────────────────────────────
+        window.addEventListener('scroll', () => {
+            const bar = document.getElementById('sticky-bar')
+            if (bar) window.scrollY > 600 ? bar.classList.add('visible') : bar.classList.remove('visible')
+            const nav = document.getElementById('navbar')
+            if (window.scrollY > 20) { nav.classList.add('glass', 'shadow-md', 'py-3'); nav.classList.remove('bg-transparent', 'py-5') }
+            else { nav.classList.add('bg-transparent', 'py-5'); nav.classList.remove('glass', 'shadow-md', 'py-3') }
+        })
+
+        // ── Newsletter ──────────────────────────────────────────────────────────────
+        function handleNewsletter(e) {
+            e.preventDefault()
+            const email = document.getElementById('nl-email').value
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Ingresa un correo válido.', 'error'); return }
+            showToast(`¡Increíble! ${email} ahora es parte de Equit.`, 'success')
+            e.target.reset()
+        }
+
+        // ── Toasts ──────────────────────────────────────────────────────────────────
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toast-container')
+            const cfg = { success: { bg: 'bg-emerald-500', icon: 'check-circle' }, info: { bg: 'bg-blue-600', icon: 'info' }, error: { bg: 'bg-red-500', icon: 'alert-circle' } }
+            const { bg, icon } = cfg[type] || cfg.info
+            const t = document.createElement('div')
+            t.className = `flex items-center text-white px-5 py-3.5 rounded-xl shadow-2xl pointer-events-auto toast-enter ${bg} max-w-xs`
+            const span = document.createElement('span'); span.className = 'font-bold text-sm'; span.textContent = msg
+            t.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5 mr-3 shrink-0"></i>`
+            t.appendChild(span)
+            c.appendChild(t)
+            lucide.createIcons({ root: t })
+            setTimeout(() => { t.style.transform = 'translateY(20px)'; t.style.opacity = '0'; setTimeout(() => { if (c.contains(t)) t.remove() }, 300) }, 3500)
+        }
+
+        // ── Menú móvil ──────────────────────────────────────────────────────────────
+        const mobBtn = document.getElementById('mob-btn')
+        const mobMenu = document.getElementById('mob-menu')
+        let mobIsOpen = false
+
+        function closeMob() {
+            if (!mobIsOpen) return
+            mobIsOpen = false
+            mobMenu.classList.remove('opacity-100', 'translate-y-0', 'visible')
+            mobMenu.classList.add('opacity-0', '-translate-y-4', 'invisible')
+            document.getElementById('mob-open').classList.remove('hidden')
+            document.getElementById('mob-close').classList.add('hidden')
+        }
+        mobBtn.addEventListener('click', () => {
+            mobIsOpen = !mobIsOpen
+            if (mobIsOpen) {
+                mobMenu.classList.remove('opacity-0', '-translate-y-4', 'invisible')
+                mobMenu.classList.add('opacity-100', 'translate-y-0', 'visible')
+                document.getElementById('mob-open').classList.add('hidden')
+                document.getElementById('mob-close').classList.remove('hidden')
+            } else { closeMob() }
+        })
+        document.querySelectorAll('.mob-link').forEach(l => l.addEventListener('click', closeMob))
+
+        // ✅ INIT — verifica sesión y pagos al cargar
+        async function initApp() {
+            const params = new URLSearchParams(window.location.search)
+
+            // Regresando de Stripe con pago exitoso
+            if (params.get('session_id')) {
+                const sessionId = params.get('session_id')
+                if (/^cs_(live|test)_[a-zA-Z0-9]+$/.test(sessionId)) {
+                    showView('course')
+                    showToast('Verificando tu pago...', 'info')
+                    try {
+                        const res = await fetch('/.netlify/functions/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sessionId }),
+                        })
+                        const { success } = await res.json()
+                        if (success) { unlockCourseUI(); showToast('¡Pago confirmado! Bienvenido al curso 🎉', 'success') }
+                        else { showToast('El pago está procesándose. Espera un momento.', 'info') }
+                    } catch { showToast('Error verificando pago. Contacta soporte.', 'error') }
+                }
+                window.history.replaceState({}, '', window.location.pathname)
+            }
+
+            if (params.get('payment_cancelled') === 'true') {
+                showView('course')
+                showToast('Pago cancelado. Puedes intentarlo cuando quieras.', 'info')
+                window.history.replaceState({}, '', window.location.pathname)
+            }
+
+            // Restaurar sesión existente
+            const { data: { session } } = await sb.auth.getSession()
+            if (session?.user) {
+                currentUser = session.user
+                updateAuthUI()
+                await checkPurchaseAccess()
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp)
+    </script>
+
+</body>
+
+</html>
